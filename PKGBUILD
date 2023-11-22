@@ -4,7 +4,7 @@
 
 pkgname=wlroots0.16
 pkgver=0.16.2
-pkgrel=1
+pkgrel=2
 license=('MIT')
 pkgdesc='Modular Wayland compositor library'
 url='https://gitlab.freedesktop.org/wlroots/wlroots'
@@ -72,4 +72,15 @@ build() {
 package() {
     DESTDIR="$pkgdir" ninja -C build install
     install -Dm644 "wlroots-$pkgver/LICENSE" -t "$pkgdir/usr/share/licenses/$pkgname/"
+
+    cd "${pkgdir}"
+    # Move libs to /usr/lib, except the .so symlinks
+    local f
+    for f in usr/lib/wlroots0.16/*; do
+      if [[ $f == *.so ]]; then
+        ln -srf -- usr/lib/"$(readlink "$f")" "$f"
+      elif [[ ! -d $f ]]; then
+        mv "$f" usr/lib
+      fi
+    done
 }
